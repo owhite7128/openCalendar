@@ -5,8 +5,16 @@
 
 
 char j[] = "9:00-13:00; Dentist Appt.";
+char *buffer;
 int slcDay, slcMon, slcYr;
 GtkWidget *list;
+
+
+void setup ()
+{
+
+
+}
 
 void new_entry (char* i, GDateTime *date, GtkWidget *box_list)
 {
@@ -79,6 +87,22 @@ static void activate (GtkApplication *app, gpointer user_data)
 
 int main (int argc, char **argv)
 {
+    FILE *config = fopen("config/config","r");
+    if (config == NULL)
+    {
+        setup();
+    }
+    else {
+    fseek(config,0L,SEEK_END);
+    int sz = ftell(config);
+    rewind(config);
+
+    buffer = (char*) malloc (sz*sizeof(char));
+    fread(buffer, 1, sz, config);
+    }
+
+
+
     GtkApplication *app;
     int status;
 
@@ -87,5 +111,6 @@ int main (int argc, char **argv)
     status = g_application_run(G_APPLICATION (app), argc, argv);
     g_object_unref (app);
 
+    free (buffer);
     return status;
 }   
