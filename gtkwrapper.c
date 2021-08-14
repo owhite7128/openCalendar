@@ -1,21 +1,29 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <gtk/gtk.h>
+#include <string.h>
 
 
-char i[] = "9:00-13:00; Dentist Appt.";
+char j[] = "9:00-13:00; Dentist Appt.";
 int slcDay, slcMon, slcYr;
+GtkWidget *list;
 
-/* GtkWidget new_entry (char* i, GDateTime *date)
+void new_entry (char* i, GDateTime *date, GtkWidget *box_list)
 {
-    GtkEntryBuffer TempBuffer;
-    return entry;
-} */
-
-void refresh_events ()
-{
-
+    GtkEntryBuffer *temp_buffer;
+    GtkWidget *temp_text, *entry;
+    
+    entry = gtk_list_box_row_new ();
+    temp_buffer = gtk_entry_buffer_new (i, strlen(i));
+    temp_text = gtk_text_new_with_buffer (temp_buffer);
+    gtk_list_box_row_set_child (GTK_LIST_BOX_ROW (entry), temp_text);
+    gtk_list_box_append (GTK_LIST_BOX (box_list), entry);
 }
+
+/* void refresh_events ()
+{
+
+} */
 
 
 static void day_marked (GtkWidget *widget, gpointer data)
@@ -24,14 +32,16 @@ static void day_marked (GtkWidget *widget, gpointer data)
     slcDay = g_date_time_get_day_of_month (tempDateTime);
     slcMon = g_date_time_get_month (tempDateTime);
     slcYr = g_date_time_get_year (tempDateTime);
-
-    g_print ("Day %d, Month %d, Year %d\n", slcDay, slcMon, slcYr);
+    char* temp_string = (char*) malloc (28*sizeof(char));
+    sprintf(temp_string,"Day %d, Month %d, Year %d", slcDay, slcMon, slcYr);
+    new_entry (temp_string, tempDateTime, list);
+    free(temp_string);
 }
 
 static void activate (GtkApplication *app, gpointer user_data)
 {
     GtkWidget *window;
-    GtkWidget *grid, *calendar, *list, *frame, *row1, *text1;
+    GtkWidget *grid, *calendar, *frame, *row1, *text1;
     GtkEntryBuffer *entryBuffer1;
     
     window = gtk_application_window_new (app);
@@ -54,13 +64,7 @@ static void activate (GtkApplication *app, gpointer user_data)
     gtk_grid_attach (GTK_GRID (grid), frame, 0, 2, 6, 1);
 
     row1 = gtk_list_box_row_new ();
-    entryBuffer1 = gtk_entry_buffer_new (i, sizeof (i));
-    text1 = gtk_text_new_with_buffer (entryBuffer1);
-    gtk_list_box_row_set_child (GTK_LIST_BOX_ROW (row1), text1);
-    gtk_list_box_append (GTK_LIST_BOX (list), row1);
-
-    row1 = gtk_list_box_row_new ();
-    entryBuffer1 = gtk_entry_buffer_new (i, sizeof (i));
+    entryBuffer1 = gtk_entry_buffer_new (j, sizeof (j));
     text1 = gtk_text_new_with_buffer (entryBuffer1);
     gtk_list_box_row_set_child (GTK_LIST_BOX_ROW (row1), text1);
     gtk_list_box_append (GTK_LIST_BOX (list), row1);
