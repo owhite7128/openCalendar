@@ -3,10 +3,11 @@
 #include <gtk/gtk.h>
 #include <string.h>
 
-
-char j[] = "9:00-13:00; Dentist Appt.";
+GtkWidget *window;
 char *buffer;
 int slcDay, slcMon, slcYr;
+const char* const hours[24] = {"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24"};
+const char* const minutes[31] = {"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31"};
 GtkWidget *list;
 
 
@@ -28,10 +29,45 @@ void new_entry (char* i, GDateTime *date, GtkWidget *box_list)
     gtk_list_box_append (GTK_LIST_BOX (box_list), entry);
 }
 
-/* void refresh_events ()
+
+void load_events ()
 {
 
-} */
+}
+
+static void new_entry_callback (GtkWidget *widget, gpointer data)
+{
+
+}
+
+static void entry_dialogue (GtkWidget *widget, gpointer data)
+{
+    GtkWidget *dialog, *content_area, *hselect, *mselect, *text_entry, *grid_dia, *cancel_button;
+    GtkEntryBuffer *entry_buffer;
+    GtkDialogFlags flags = GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT;
+    
+    dialog = gtk_dialog_new ();
+    gtk_window_set_title (GTK_WINDOW (dialog), "Add Event");
+    gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (window));
+    grid_dia = gtk_grid_new ();
+    gtk_window_set_default_size (GTK_WINDOW (dialog), 200, 75);
+    content_area = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
+
+    hselect = gtk_drop_down_new (NULL, NULL);
+    gtk_grid_attach (GTK_GRID (grid_dia), hselect, 0, 0, 1, 1);
+    mselect = gtk_drop_down_new (NULL, NULL);
+    gtk_grid_attach (GTK_GRID (grid_dia), mselect, 1, 0, 1, 1);
+    entry_buffer = gtk_entry_buffer_new (NULL, -1);
+    text_entry = gtk_entry_new_with_buffer (entry_buffer);
+    gtk_grid_attach (GTK_GRID (grid_dia), text_entry, 0, 1, 2, 1);
+    cancel_button = gtk_button_new_with_label ("Cancel");
+    gtk_grid_attach (GTK_GRID (grid_dia), cancel_button, 3, 1, 1, 1);
+
+    g_signal_connect_swapped (cancel_button, "clicked", G_CALLBACK (gtk_window_destroy), dialog);
+    gtk_box_append (GTK_BOX (content_area), grid_dia);
+
+    gtk_widget_show (dialog);
+}
 
 
 static void day_marked (GtkWidget *widget, gpointer data)
@@ -44,13 +80,12 @@ static void day_marked (GtkWidget *widget, gpointer data)
     sprintf(temp_string,"Day %d, Month %d, Year %d", slcDay, slcMon, slcYr);
     new_entry (temp_string, tempDateTime, list);
     free(temp_string);
+    load_events();
 }
 
 static void activate (GtkApplication *app, gpointer user_data)
 {
-    GtkWidget *window;
-    GtkWidget *grid, *calendar, *frame, *row1, *text1;
-    GtkEntryBuffer *entryBuffer1;
+    GtkWidget *grid, *calendar, *frame, *entry_button;
     
     window = gtk_application_window_new (app);
     gtk_window_set_title (GTK_WINDOW (window),"Open Calendar");
@@ -71,14 +106,9 @@ static void activate (GtkApplication *app, gpointer user_data)
     gtk_frame_set_child (GTK_FRAME (frame), list);
     gtk_grid_attach (GTK_GRID (grid), frame, 0, 2, 6, 1);
 
-    row1 = gtk_list_box_row_new ();
-    entryBuffer1 = gtk_entry_buffer_new (j, sizeof (j));
-    text1 = gtk_text_new_with_buffer (entryBuffer1);
-    gtk_list_box_row_set_child (GTK_LIST_BOX_ROW (row1), text1);
-    gtk_list_box_append (GTK_LIST_BOX (list), row1);
-
-    
-
+    entry_button = gtk_button_new_with_label ("Add Event");
+    g_signal_connect (entry_button, "clicked", G_CALLBACK (entry_dialogue), NULL);
+    gtk_grid_attach (GTK_GRID (grid), entry_button, 0, 3, 6, 1);
 
     gtk_widget_show (window);
     return;
