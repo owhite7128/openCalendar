@@ -1,10 +1,10 @@
-all: openCalendar
+all: bin/openCalendar
 
-openCalendar: gtkwrapper.o
-	gcc -g gtkwrapper.o -o openCalendar `pkg-config --cflags --libs gtk4`
+bin/openCalendar: src/gtkwrapper.o
+	gcc  -g src/gtkwrapper.o -o bin/openCalendar `pkg-config --cflags --libs gtk4`
 
-gtkwrapper.o: gtkwrapper.c
-	gcc -c gtkwrapper.c -o gtkwrapper.o `pkg-config --cflags --libs gtk4`
+src/gtkwrapper.o: src/gtkwrapper.c
+	gcc  -c src/gtkwrapper.c -o src/gtkwrapper.o `pkg-config --cflags --libs gtk4`
 
 clean:
-	rm -rf *.o openCalendar
+	rm -rf src/*.o bin/openCalendar
