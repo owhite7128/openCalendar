@@ -20,7 +20,7 @@ TODO:
     1) Get the calendar to add events format - hh:mm | text
     2) Come up with a way to store events in a database
     3) Get the setup to create the filesystem if it is not there already
-    4) 
+    4) Get The Calendar to Events On Day by Day? Or Week By Week?
 
 
 */
