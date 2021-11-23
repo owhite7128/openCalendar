@@ -2,15 +2,10 @@
 #include <stdio.h>
 #include <gtk/gtk.h>
 #include <string.h>
+#include "include/gtkwrapper.h"
 
 GtkWidget *window;
-char *buffer;
-char *line;
-int c;
-int count = 0;
 int slcDay, slcMon, slcYr;
-char *database;
-char *path2folder;
 GtkWidget *list;
 GtkWidget *hselect, *mselect, *text_entry;
 
@@ -24,14 +19,6 @@ TODO:
 
 
 */
-
-
-void setup ()
-{
-
-
-
-}
 
 //Adding Entry To calendardb
 void add_entry ()
@@ -67,7 +54,7 @@ void load_events ()
 
 
 //Event Dialogue Option
-static void entry_dialogue (GtkWidget *widget, gpointer data)
+void entry_dialogue (GtkWidget *widget, gpointer data)
 {
     GtkWidget *dialog, *content_area, *grid_dia, *cancel_button, *entry_button_dia;
     GtkEntryBuffer *entry_buffer;
@@ -111,7 +98,7 @@ static void entry_dialogue (GtkWidget *widget, gpointer data)
 }
 
 //Retrieve the Current Selected Day
-static void day_marked (GtkWidget *widget, gpointer data)
+void day_marked (GtkWidget *widget, gpointer data)
 {
     GDateTime *tempDateTime = gtk_calendar_get_date (GTK_CALENDAR (widget));
     slcDay = g_date_time_get_day_of_month (tempDateTime);
@@ -121,7 +108,7 @@ static void day_marked (GtkWidget *widget, gpointer data)
 }
 
 //Main Window
-static void activate (GtkApplication *app, gpointer user_data)
+void activate (GtkApplication *app, gpointer user_data)
 {
     GtkWidget *grid, *calendar, *frame, *entry_button;
     
@@ -150,73 +137,3 @@ static void activate (GtkApplication *app, gpointer user_data)
 
     gtk_widget_show (window);
 }
-
-
-int main (int argc, char **argv)
-{
-    FILE *config = fopen("config/config","r");
-    if (config == NULL)
-    {
-        setup();
-    }
-    else {
-        fseek(config,0L,SEEK_END);
-        int sz = ftell(config);
-        rewind(config);
-
-        buffer = (char*) malloc (sz*sizeof(char));
-        fread(buffer, 1, sz, config);
-        rewind(config);
-        do {
-            c = getc(config);
-            if (c == '\n') // Increment count if this character is newline
-            count++;
-        } while (c != EOF);
-        line = strtok(buffer,"\n");
-        for (int i=0; i < count; i++)
-        {   
-            if (line[0] != 35)
-            {
-                
-                if (line[0] == 100 && line[1] == 98)
-                {
-                    database = (char*) malloc ((strlen(line)-7)*sizeof(char));
-                    int q=0;
-                    for (int j=6;j< strlen(line)-1;j++)
-                    {
-                        database[q]= line[j];
-                        q++;
-                    }
-                }
-                else if (line[0] == 100 && line[1] == 105 && line[2] == 114)
-                {
-                    path2folder = (char*) malloc ((strlen(line)-8)*sizeof(char));
-                    int q=0;
-                    for (int j=7;j< strlen(line)-1;j++)
-                    {
-                        path2folder[q]= line[j];
-                        q++;
-                    }
-                }
-            } 
-
-            line = strtok(NULL, "\n");
-        }
-    }
-
-
-
-    GtkApplication *app;
-    int status;
-
-    app = gtk_application_new ("org.gtk.example", G_APPLICATION_FLAGS_NONE);
-    g_signal_connect (app, "activate", G_CALLBACK (activate), NULL);
-    status = g_application_run(G_APPLICATION (app), argc, argv);
-    g_object_unref (app);
-
-    fclose (config);
-    free (buffer);
-    free(path2folder);
-    free(database);
-    return status;
-}   
