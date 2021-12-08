@@ -3,22 +3,32 @@
 #include <gtk/gtk.h>
 #include <string.h>
 #include "include/gtkwrapper.h"
+#include "include/access_base.h"
 
 GtkWidget *window;
 int slcDay, slcMon, slcYr;
 GtkWidget *list;
 GtkWidget *hselect, *mselect, *text_entry;
 
+B_DATETIME tdatetime;
 
-/* 
-TODO:
-    1) Get the calendar to add events format - hh:mm | text
-    2) Come up with a way to store events in a database
-    3) Get the setup to create the filesystem if it is not there already
-    4) Get The Calendar to Events On Day by Day? Or Week By Week?
+void remove_events (GtkWidget *ltr)
+{
+    GList *event_list;
+    int length;
+    gtk_list_box_select_all (GTK_LIST_BOX (ltr));
+    event_list = gtk_list_box_get_selected_rows(GTK_LIST_BOX (ltr));
 
+    length = g_list_length (event_list);
+    printf("%d\n", length);
+    for (int q=0; q<length; q++)
+    {
+        gtk_list_box_remove (GTK_LIST_BOX (ltr),g_list_nth_data (event_list, q));
+        printf("test\n");
+    }
 
-*/
+    g_list_free (event_list);
+}
 
 //Adding Entry To calendardb
 void add_entry ()
@@ -28,9 +38,28 @@ void add_entry ()
     const char *name;
     name = gtk_entry_buffer_get_text (GTK_ENTRY_BUFFER (gtk_entry_get_buffer (GTK_ENTRY (text_entry))));
 
-    printf("Hours: %f, Minutes: %f\n",hours, minutes);
-    printf("Day %d, Month %d, Year %d\n", slcDay, slcMon, slcYr);
-    printf("%s\n",name);
+    // Format for Time and Text
+    char entry[100];
+    snprintf (entry, 100, "%d/%d/%d, %d:%d | %s",slcDay,slcMon,slcYr,(int) hours,(int) minutes,name);
+
+    GtkWidget *entry_item, *entry_text;
+    GtkEntryBuffer *entry_buffer;
+
+    entry_item = gtk_list_box_row_new ();
+    entry_buffer = gtk_entry_buffer_new(entry ,strlen(entry));
+    entry_text = gtk_text_new_with_buffer (entry_buffer);
+    gtk_list_box_row_set_child (GTK_LIST_BOX_ROW (entry_item), entry_text);
+    gtk_list_box_append (GTK_LIST_BOX (list), entry_item);
+
+
+    /*
+
+        THIS IS WHERE THE DATABASE FUNCTIONALITY GOES, 
+        SUCH AS ADDING AN EVENT TO A DATABASE
+    
+    */
+
+
 }
 
 
@@ -49,7 +78,12 @@ void add_entry ()
 
 void load_events ()
 {
-
+    /*
+    
+        Once a Day has been selected, 
+            utilize this method to grab from the database what has been scheduled
+    
+    */
 }
 
 
@@ -104,7 +138,18 @@ void day_marked (GtkWidget *widget, gpointer data)
     slcDay = g_date_time_get_day_of_month (tempDateTime);
     slcMon = g_date_time_get_month (tempDateTime);
     slcYr = g_date_time_get_year (tempDateTime);
+    tdatetime.day = slcDay;
+    tdatetime.month = slcMon;
+    tdatetime.year = slcYr;
+    r_base (tdatetime);
+    //remove_events(list);
     load_events();
+
+    /*
+    
+        Add Removal of all Elements when new day is selected
+
+    */
 }
 
 //Main Window
@@ -127,13 +172,14 @@ void activate (GtkApplication *app, gpointer user_data)
 
     frame = gtk_frame_new (NULL);
 
+    //Listed Events Are Applied Here
     list = gtk_list_box_new ();
     gtk_frame_set_child (GTK_FRAME (frame), list);
-    gtk_grid_attach (GTK_GRID (grid), frame, 0, 2, 6, 1);
+    gtk_grid_attach (GTK_GRID (grid), frame, 7, 0, 6, 2);
 
     entry_button = gtk_button_new_with_label ("Add Event");
     g_signal_connect (entry_button, "clicked", G_CALLBACK (entry_dialogue), NULL);
-    gtk_grid_attach (GTK_GRID (grid), entry_button, 0, 3, 6, 1);
+    gtk_grid_attach (GTK_GRID (grid), entry_button, 0, 2, 12, 1);
 
     gtk_widget_show (window);
 }
