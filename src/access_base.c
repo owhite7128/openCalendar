@@ -57,16 +57,25 @@ char* r_base(B_DATETIME datetime)
             if ( atoi(curr_date) == datetime.month )
             {
                 monY = 1;
+            }else
+            {
+                monY = 0;
             }
             curr_date = strtok_r (NULL, " ", &curr_date_rest);
             if ( atoi(curr_date) == datetime.day )
             {
                 dayY = 1;
+            }else
+            {
+                dayY = 0;
             }
             curr_date = strtok_r (NULL, " ", &curr_date_rest);
             if ( atoi(curr_date) == datetime.year )
             {
                 yrY = 1;
+            }else
+            {
+                yrY = 0;
             }
 
         }
