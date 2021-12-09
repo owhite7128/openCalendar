@@ -9,7 +9,9 @@ int baseSz, baseC, dateLine;
 int lnum = 0;
 FILE *basefile;
 char *r_buffer;
+char *r_buffer_rest;
 char *curr_date;
+char *curr_date_rest;
 char *baseLine;
 int dayY, monY, yrY, currD, currM, currY;
 
@@ -45,49 +47,43 @@ char* r_base(B_DATETIME datetime)
     fread (r_buffer, 1, baseSz, basefile);
     rewind (basefile);
 
-    baseLine = strtok (r_buffer, "\n");
+    baseLine = strtok_r (r_buffer, "\n", &r_buffer_rest);
     for (int iL=0; iL < lnum; iL++)
     {
         if (baseLine[0] == 58)
         {   
-            curr_date = strtok (baseLine, " ");
-            curr_date = strtok (NULL, " ");
+            curr_date = strtok_r (baseLine, " ", &curr_date_rest);
+            curr_date = strtok_r (NULL, " ", &curr_date_rest);
             if ( atoi(curr_date) == datetime.month )
             {
                 monY = 1;
-            }else
-            {
-                monY = 0;
             }
-            curr_date = strtok (NULL, " ");
+            curr_date = strtok_r (NULL, " ", &curr_date_rest);
             if ( atoi(curr_date) == datetime.day )
             {
                 dayY = 1;
-            }else
-            {
-                dayY = 0;
             }
-            curr_date = strtok (NULL, " ");
+            curr_date = strtok_r (NULL, " ", &curr_date_rest);
             if ( atoi(curr_date) == datetime.year )
             {
                 yrY = 1;
-            }else
-            {
-                yrY = 0;
             }
 
         }
-        /*if (dayY == 1 && monY == 1 && yrY == 1)
+        else if (baseLine[0] == 34)
+        {
+            break;
+        }
+        if (dayY == 1 && monY == 1 && yrY == 1)
         {   
             dateLine = iL;
             break;
-        }*/
-        
-        baseLine = strtok(NULL, "\n");
+        }
+        baseLine = strtok_r (NULL, "\n", &r_buffer_rest);
     }
     if (dateLine != -1)
     {
-        printf ("Date Exists: %d/%d/%d\n",datetime.month,datetime.day,datetime.year);
+        printf ("Date Exists: %d/%d/%d on Line: %d\n",datetime.month,datetime.day,datetime.year, dateLine);
     }
     else
     {
