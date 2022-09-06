@@ -20,9 +20,9 @@ typedef struct B_EVENT
 
 void n_base (char* base_path);
 
-char* r_base(B_DATETIME datetime);
+B_EVENT* r_base(B_DATETIME datetime);
 
-int w_base(char* out);
+void w_base(char* out, B_DATETIME B_DATETIME);
 
 
 #endif

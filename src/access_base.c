@@ -4,50 +4,27 @@
 #include <string.h>
 
 
+
+/*
+    How Database Stores Events
+
+
+ */
+
 char *base= NULL;
 int baseSz, baseC, dateLine;
 int lnum = 0;
 FILE *basefile;
-char *r_buffer;
-char *r_buffer_rest;
-char *curr_date;
-char *curr_date_rest;
-char *baseLine;
 int dayY, monY, yrY, currD, currM, currY;
 
-void n_base (char* base_path)
-{
-    base = base_path;
-    basefile = fopen (base_path,"r+");
-    if (basefile == NULL)
-    {
-        printf ("ERR: Database Does not Exist\n");
-    }
-    else {
-        fseek (basefile, 0L, SEEK_END);
-        baseSz = ftell (basefile);
-        rewind (basefile);
 
-        do {
-            baseC = getc(basefile);
-            if (baseC == '\n')
-            lnum++;
-        } while (baseC != EOF);
-
-    }
-    rewind(basefile);
-}
-
-char* r_base(B_DATETIME datetime)
-{
-    dateLine = -1;
-    dayY = monY = yrY = -1;
-
-    r_buffer = (char*) malloc (baseSz * sizeof(char));
-    fread (r_buffer, 1, baseSz, basefile);
-    rewind (basefile);
-
-    baseLine = strtok_r (r_buffer, "\n", &r_buffer_rest);
+int ret_day_base (B_DATETIME datetime, char* buffer) {
+    int line = -1;
+    char* baseLine;
+    char* buffer_rest;
+    char* curr_date;
+    char* curr_date_rest;
+    baseLine = strtok_r (buffer, "\n", &buffer_rest);
     for (int iL=0; iL < lnum; iL++)
     {
         if (baseLine[0] == 58)
@@ -85,28 +62,163 @@ char* r_base(B_DATETIME datetime)
         }
         if (dayY == 1 && monY == 1 && yrY == 1)
         {   
-            dateLine = iL;
+            line = iL;
             break;
         }
-        baseLine = strtok_r (NULL, "\n", &r_buffer_rest);
+        baseLine = strtok_r (NULL, "\n", &buffer_rest);
     }
-    if (dateLine != -1)
-    {
-        printf ("Date Exists: %d/%d/%d on Line: %d\n",datetime.month,datetime.day,datetime.year, dateLine);
-    }
-    else
-    {
-        printf("Day Does Not Exists: %d/%d/%d\n",datetime.month,datetime.day,datetime.year);
-    }
-    
 
-
-    free (r_buffer);
-    return "Test";
+    return line;
+    free (buffer);
 }
 
-int w_base(char* out)
-{
 
-    printf("%s\n",base);
+void n_base (char* base_path)
+{
+    base = base_path;
+    basefile = fopen (base_path,"r+");
+    if (basefile == NULL)
+    {
+        printf ("ERR: Database Does not Exist\n");
+        exit(-1);
+    }
+    else {
+        fseek (basefile, 0L, SEEK_END);
+        baseSz = ftell (basefile);
+        rewind (basefile);
+
+        do {
+            baseC = getc(basefile);
+            if (baseC == '\n')
+            lnum++;
+        } while (baseC != EOF);
+
+    }
+    rewind(basefile);
+    fclose (basefile);
+}
+
+B_EVENT* r_base(B_DATETIME datetime)
+{
+    B_EVENT *ret;
+
+    char *r_buffer, *r_buffer_ret, *r_buffer_rest;
+    char *baseLine, *event_str;
+
+    dateLine = -1;
+    dayY = monY = yrY = -1;
+    n_base(base);
+    int n_entries;
+
+    basefile = fopen (base, "r+");
+    r_buffer = (char*) malloc (baseSz * sizeof(char));
+    fread (r_buffer, 1, baseSz, basefile);
+    rewind (basefile);
+    r_buffer_ret = (char*) malloc (baseSz *sizeof(char));
+    fread (r_buffer_ret, 1, baseSz, basefile);
+    rewind (basefile);
+    fclose (basefile);
+
+    dateLine = ret_day_base (datetime, r_buffer_ret);
+
+    if (dateLine == -1)
+    {
+        return ret;
+    }
+
+    baseLine = strtok_r (r_buffer,"\n",&r_buffer_rest);
+    for (int i=0; i<dateLine;i++)
+    {
+        baseLine = strtok_r (NULL, "\n", &r_buffer_rest);
+    }
+
+    event_str = strtok (r_buffer_rest,":");
+    int q=0;
+    int lns=0;
+    while (event_str[q] != '\0')
+    {
+        if (event_str[q] == '\n')
+        {
+            lns++;
+        }
+        if (event_str[q] == '\"')
+        {
+            event_str = strtok (event_str,"\"");
+            break;
+        }
+        q++;
+    } 
+
+    ret = (B_EVENT*) malloc (lns*sizeof(B_EVENT));
+
+    
+
+    free (r_buffer);
+    return ret;
+}
+
+void w_base(char* out, B_DATETIME datetime)
+{
+    char *w_buffer, *w_buffer_ret;
+    char str[128];
+    char str_head[128];
+    int n, m;
+    int entry;
+    n_base(base);
+
+    basefile = fopen (base, "r+");
+    w_buffer_ret = (char*) malloc((baseSz + 255)*sizeof(char));
+    w_buffer = (char*) malloc((baseSz + 255)*sizeof(char));
+    fread(w_buffer, 1, baseSz+255, basefile);
+    rewind(basefile);
+    fread(w_buffer_ret, 1, baseSz+255, basefile);
+    rewind(basefile);
+    fclose (basefile);
+
+    int ln = ret_day_base (datetime, w_buffer_ret);
+    n = sprintf (str, "; %d %d %s\n", datetime.hour, datetime.minute, out);
+
+    if (ln == -1) 
+    {
+        m = sprintf (str_head, ": %d %d %d\n", datetime.month, datetime.day, datetime.year);
+        for (int i =(baseSz + 256 - n - m); i >= 0; i--)
+        {
+            w_buffer[i+n+m] = w_buffer[i];
+        }
+
+        for (int i=0; i<m; i++)
+        {
+            w_buffer[i] = str_head[i];
+        }
+        for (int i=0; i<n; i++)
+        {
+            w_buffer[i+m] = str[i];
+        }
+    } else 
+    {
+        int q = 0;
+        for (int i=0; i< ln+1; i++)
+        { 
+            while (w_buffer[q] != '\n')
+            {
+                q++;
+            }
+            q++;
+        }
+        q--;
+
+        for (int i=(baseSz + 256 - n); i > q; i--)
+        {
+            w_buffer[i+n] = w_buffer[i];
+        }
+        for (int i=0; i< n; i++)
+        {
+            w_buffer[q+1+i] = str[i];
+        }
+    }
+    
+    basefile = fopen (base, "w+");
+    fwrite (w_buffer, 1, baseSz + n + m, basefile);
+    fclose (basefile);
+    free (w_buffer);
 }

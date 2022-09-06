@@ -14,20 +14,9 @@ B_DATETIME tdatetime;
 
 void remove_events (GtkWidget *ltr)
 {
-    GList *event_list;
-    int length;
-    gtk_list_box_select_all (GTK_LIST_BOX (ltr));
-    event_list = gtk_list_box_get_selected_rows(GTK_LIST_BOX (ltr));
-
-    length = g_list_length (event_list);
-    printf("%d\n", length);
-    for (int q=0; q<length; q++)
-    {
-        gtk_list_box_remove (GTK_LIST_BOX (ltr),g_list_nth_data (event_list, q));
-        printf("test\n");
+    while (gtk_widget_get_first_child (ltr)) {
+        gtk_list_box_remove (GTK_LIST_BOX (ltr), gtk_widget_get_first_child (ltr));
     }
-
-    g_list_free (event_list);
 }
 
 //Adding Entry To calendardb
@@ -37,6 +26,13 @@ void add_entry ()
     double minutes = gtk_spin_button_get_value (GTK_SPIN_BUTTON (mselect));
     const char *name;
     name = gtk_entry_buffer_get_text (GTK_ENTRY_BUFFER (gtk_entry_get_buffer (GTK_ENTRY (text_entry))));
+
+    B_DATETIME datetime;
+    datetime.day = slcDay;
+    datetime.month = slcMon;
+    datetime.year = slcYr;
+    datetime.hour = (int) hours;
+    datetime.minute = (int) minutes;
 
     // Format for Time and Text
     char entry[100];
@@ -51,6 +47,8 @@ void add_entry ()
     gtk_list_box_row_set_child (GTK_LIST_BOX_ROW (entry_item), entry_text);
     gtk_list_box_append (GTK_LIST_BOX (list), entry_item);
 
+    w_base ((char*) name, datetime);
+
 
     /*
 
@@ -58,8 +56,6 @@ void add_entry ()
         SUCH AS ADDING AN EVENT TO A DATABASE
     
     */
-
-
 }
 
 
@@ -76,14 +72,15 @@ void add_entry ()
 } */
 
 
-void load_events ()
+void load_events (GtkWidget *ltr, B_EVENT* event_list)
 {
     /*
-    
+        NEXT STEP:
         Once a Day has been selected, 
-            utilize this method to grab from the database what has been scheduled
+            utilize this method to add events to sidebar;
     
     */
+   for 
 }
 
 
@@ -134,6 +131,7 @@ void entry_dialogue (GtkWidget *widget, gpointer data)
 //Retrieve the Current Selected Day
 void day_marked (GtkWidget *widget, gpointer data)
 {
+    B_EVENT *events;
     GDateTime *tempDateTime = gtk_calendar_get_date (GTK_CALENDAR (widget));
     slcDay = g_date_time_get_day_of_month (tempDateTime);
     slcMon = g_date_time_get_month (tempDateTime);
@@ -141,15 +139,11 @@ void day_marked (GtkWidget *widget, gpointer data)
     tdatetime.day = slcDay;
     tdatetime.month = slcMon;
     tdatetime.year = slcYr;
-    r_base (tdatetime);
-    //remove_events(list);
-    load_events();
+    events = r_base (tdatetime);
+    remove_events(list);
+    load_events(list, events);
 
-    /*
-    
-        Add Removal of all Elements when new day is selected
-
-    */
+    free(events);
 }
 
 //Main Window

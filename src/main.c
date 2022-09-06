@@ -2,7 +2,7 @@
 #include "include/netconnect.h"
 #include "include/gtkwrapper.h"
 #include "include/access_base.h"
-
+#include "include/fuxgtk.h"
 
 /* 
 TODO:
@@ -32,7 +32,7 @@ char *path2folder;
 
 int main (int argc, char **argv)
 {
-    FILE *config = fopen("config/config","r");
+    FILE *config = fopen("bin/config.conf","r");
     if (config == NULL)
     {
         setup();
@@ -59,7 +59,7 @@ int main (int argc, char **argv)
                 if (line[0] == 100 && line[1] == 98)
                 {
                     int q=0;
-                    for (int j=6;j< strlen(line)-1;j++)
+                    for (int j=3;j< strlen(line)-1;j++)
                     {
                         database[q]= line[j];
                         q++;
@@ -67,9 +67,9 @@ int main (int argc, char **argv)
                 }
                 else if (line[0] == 100 && line[1] == 105 && line[2] == 114)
                 {
-                    path2folder = (char*) malloc ((strlen(line)-8)*sizeof(char));
+                    path2folder = (char*) malloc ((strlen(line)-4)*sizeof(char));
                     int q=0;
-                    for (int j=7;j< strlen(line)-1;j++)
+                    for (int j=4;j< strlen(line)-1;j++)
                     {
                         path2folder[q]= line[j];
                         q++;
