@@ -98,12 +98,14 @@ void n_base (char* base_path)
     fclose (basefile);
 }
 
-B_EVENT* r_base(B_DATETIME datetime)
+B_EVENT* r_base(B_DATETIME datetime, int *num_event)
 {
     B_EVENT *ret;
 
     char *r_buffer, *r_buffer_ret, *r_buffer_rest;
     char *baseLine, *event_str;
+    char *event_line, *event_line_rest;
+    char *curr_time, *curr_time_rest;
 
     dateLine = -1;
     dayY = monY = yrY = -1;
@@ -123,6 +125,7 @@ B_EVENT* r_base(B_DATETIME datetime)
 
     if (dateLine == -1)
     {
+        ret = (B_EVENT*) malloc (1*sizeof (B_EVENT));
         return ret;
     }
 
@@ -148,10 +151,27 @@ B_EVENT* r_base(B_DATETIME datetime)
         }
         q++;
     } 
+    *num_event = lns;
 
     ret = (B_EVENT*) malloc (lns*sizeof(B_EVENT));
 
-    
+    event_line = strtok_r (event_str, "\n", &event_line_rest);
+
+    for (int i=0; i<lns; i++)
+    {
+        curr_time = strtok_r (event_line, " ", &curr_time_rest);
+        curr_time = strtok_r (NULL, " ", &curr_time_rest);
+        ret[i].datetime.day = datetime.day;
+        ret[i].datetime.month = datetime.month;
+        ret[i].datetime.year = datetime.year;
+        ret[i].datetime.hour = atoi (curr_time);
+        curr_time = strtok_r (NULL, " ", &curr_time_rest);
+        ret[i].datetime.minute = atoi (curr_time);
+        ret[i].text = curr_time_rest;
+
+        event_line = strtok_r (NULL, "\n", &event_line_rest);
+    }
+
 
     free (r_buffer);
     return ret;

@@ -48,8 +48,6 @@ void add_entry ()
     gtk_list_box_append (GTK_LIST_BOX (list), entry_item);
 
     w_base ((char*) name, datetime);
-
-
     /*
 
         THIS IS WHERE THE DATABASE FUNCTIONALITY GOES, 
@@ -59,20 +57,20 @@ void add_entry ()
 }
 
 
-/* void new_entry (char* i, GDateTime *date, GtkWidget *box_list)
+void new_entry (char* input, B_DATETIME datetime, GtkWidget *box_list)
 {
     GtkEntryBuffer *temp_buffer;
     GtkWidget *temp_text, *entry;
     
     entry = gtk_list_box_row_new ();
-    temp_buffer = gtk_entry_buffer_new (i, strlen(i));
+    temp_buffer = gtk_entry_buffer_new (input, strlen(input));
     temp_text = gtk_text_new_with_buffer (temp_buffer);
     gtk_list_box_row_set_child (GTK_LIST_BOX_ROW (entry), temp_text);
     gtk_list_box_append (GTK_LIST_BOX (box_list), entry);
-} */
+} 
 
 
-void load_events (GtkWidget *ltr, B_EVENT* event_list)
+void load_events (GtkWidget *ltr, B_DATETIME datetime)
 {
     /*
         NEXT STEP:
@@ -80,7 +78,33 @@ void load_events (GtkWidget *ltr, B_EVENT* event_list)
             utilize this method to add events to sidebar;
     
     */
-   for 
+    GtkWidget *e_item, *e_text;
+    GtkEntryBuffer *e_buffer;
+
+    B_EVENT *events = NULL;
+    int e_num = -1;
+
+    events = r_base (datetime, &e_num);
+    
+   if (e_num != -1)
+   {
+        char ent[e_num][100];
+        for (int i=0; i<e_num; i++)
+        {
+            sprintf (ent[i], "%d/%d/%d, %d:%d | %s", events[i].datetime.day,
+                    events[i].datetime.month, events[i].datetime.year, events[i].datetime.hour, 
+                    events[i].datetime.minute, events[i].text);
+        }
+        for (int i=0; i<e_num; i++)
+        {
+            e_item = gtk_list_box_row_new ();
+            e_buffer = gtk_entry_buffer_new (ent[i], strlen (ent[i]));
+            e_text = gtk_text_new_with_buffer (e_buffer);
+            gtk_list_box_row_set_child (GTK_LIST_BOX_ROW (e_item), e_text);
+            gtk_list_box_append (GTK_LIST_BOX (ltr), e_item);
+        }
+    }
+    free (events);
 }
 
 
@@ -131,7 +155,8 @@ void entry_dialogue (GtkWidget *widget, gpointer data)
 //Retrieve the Current Selected Day
 void day_marked (GtkWidget *widget, gpointer data)
 {
-    B_EVENT *events;
+    B_EVENT *events = NULL;
+    int e_num = -1;
     GDateTime *tempDateTime = gtk_calendar_get_date (GTK_CALENDAR (widget));
     slcDay = g_date_time_get_day_of_month (tempDateTime);
     slcMon = g_date_time_get_month (tempDateTime);
@@ -139,11 +164,9 @@ void day_marked (GtkWidget *widget, gpointer data)
     tdatetime.day = slcDay;
     tdatetime.month = slcMon;
     tdatetime.year = slcYr;
-    events = r_base (tdatetime);
     remove_events(list);
-    load_events(list, events);
-
-    free(events);
+    load_events(list, tdatetime);
+    
 }
 
 //Main Window
